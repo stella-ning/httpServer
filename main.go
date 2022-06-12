@@ -8,6 +8,7 @@ import (
 	"net/http/pprof"
 	"os"
 	"strings"
+	"time"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +35,15 @@ func index(w http.ResponseWriter, r *http.Request) {
 // 05.健康检查的路由
 func healthz(w http.ResponseWriter, r *http.Request) {
 	//Fprintf：来格式化并输出到 io.Writers 而不是 os.Stdout。
-
+	started := time.Now()
+	duration := time.Now().Sub(started)
+	if duration.Seconds() > 10 {
+		w.WriteHeader(500)
+		w.Write([]byte(fmt.Sprintf("error: %v", duration.Seconds())))
+	} else {
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
+	}
 	fmt.Fprintf(w, "working")
 }
 
