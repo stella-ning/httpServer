@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+data:
+  httpport: "8090"
+  loglevel: "info"
+metadata:
+  name: myenv
