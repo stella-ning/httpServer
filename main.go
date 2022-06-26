@@ -3,12 +3,16 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/pprof"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/stella-ning/httpServer/metrics"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -75,9 +79,16 @@ func ClientIP(r *http.Request) string {
 	}
 	return ""
 }
-
+func images(w http.ResponseWriter, r *http.Request) {
+	timer := metrics.NewTimer()
+	defer timer.ObserveTotal()
+	randInt := rand.Intn(2000)
+	time.Sleep(time.Millisecond * time.Duration(randInt))
+	w.Write([]byte(fmt.Sprintf("<h1>%d<h1>", randInt)))
+}
 func main() {
 	// NewServeMux可以创建一个ServeMux实例，ServeMux同时也实现了ServeHTTP方法，因此代码中的mux也是一种handler。把它当成参数传给http.ListenAndServe方法，后者会把mux传给Server实例。因为指定了handler，因此整个http服务就不再是DefaultServeMux，而是mux，无论是在注册路由还是提供请求服务的时候。
+	metrics.Register()
 	mux := http.NewServeMux()
 	// 06. debug
 	mux.HandleFunc("/debug/pprof/", pprof.Index)
@@ -86,6 +97,8 @@ func main() {
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	mux.HandleFunc("/", index)
 	mux.HandleFunc("/healthz", healthz)
+	mux.HandleFunc("/images", images)
+	mux.Handle("/metrics", promhttp.Handler())
 	if err := http.ListenAndServe(":8090", mux); err != nil {
 		log.Fatalf("start http server failed, error: %s\n", err.Error())
 	}
