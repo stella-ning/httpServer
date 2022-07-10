@@ -1,0 +1,18 @@
+#virtualserver
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: simple
+spec:
+  gateways:
+    - simple
+  hosts:
+    - simple.nyx.io
+  http:
+    - match:
+        - port: 80
+      route:
+        - destination:
+            host: simple.simple.svc.cluster.local
+            port:
+              number: 80
